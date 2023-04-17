@@ -67,8 +67,8 @@ sed -i '/CYXluq4wUazHjmCDBCqXF/d' $ZZZ
 echo '去除防火墙规则'
 sed -i '/to-ports 53/d' $ZZZ
 
-# echo '设置个性名字'
-# sed -i "s/OpenWrt /geomch. compiled in $(TZ=UTC-8 date "+%Y.%m.%d") @ OpenWrt /g" $ZZZ
+echo '设置个性名字'
+sed -i "s/OpenWrt /geomch. compiled in $(TZ=UTC-8 date "+%Y.%m.%d") @ OpenWrt /g" $ZZZ
 
 echo '设置个性banner'
 cat > package/base-files/files/etc/banner <<EOF
