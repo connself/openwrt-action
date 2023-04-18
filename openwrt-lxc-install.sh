@@ -42,10 +42,10 @@ update_CT_Templates(){
     echo
     TIME y "下载OpenWrt固件"
     echo " 通过https://ghproxy.com/代理下载固件中..."
-    wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
+    wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz -O ${Download_Path}/openwrt.rootfs.img.gz
     if [[ $? -ne 0 ]];then
         echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
-        wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
+        wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz -O ${Download_Path}/openwrt.rootfs.img.gz
         if [[ $? -ne 0 ]];then
             TIME r "固件下载失败，请检测网络，或者网址是否正确！"
             echo
@@ -62,12 +62,12 @@ update_CT_Templates(){
     TIME y "更新OpenWrt CT模板"
     echo
     TIME g "解包OpenWrt img镜像..."
-    cd ${Download_Path} && unsquashfs openwrt.rootfs.img
+    cd ${Download_Path}  && gzip -d openwrt.rootfs.img.gz && unsquashfs openwrt.rootfs.img
     TIME g "CT模板：上传至/var/lib/vz/template/cache目录..."
     if [[ -f /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz ]]; then
         rm -f /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz
     fi
-    cd ${Download_Path}/squashfs-root && gzip -d openwrt.rootfs.img.gz && tar zcf /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz ./* && cd ../.. && rm -rf ${Download_Path}
+    cd ${Download_Path}/squashfs-root && tar zcf /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz ./* && cd ../.. && rm -rf ${Download_Path}
     TIME g "CT模板：上传成功！"
     ctsize=`ls -l /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz | awk '{print $5}'`    
     TIME g "CT模板：${ctsize}字节"
