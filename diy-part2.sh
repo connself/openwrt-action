@@ -17,7 +17,7 @@ sed -i "s/timezone='UTC'/timezone='CST-8'/" package/base-files/files/bin/config_
 sed -i "/timezone='CST-8'/a \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ set system.@system[-1].zonename='Asia/Shanghai'" package/base-files/files/bin/config_generate
 
 echo '修改 IP设置'
-cat >$NETIP <<-EOF
+cat >package/base-files/files/etc/networkip <<-EOF
 uci delete network.wan                                       # 删除wan口
 uci delete network.wan6                                      # 删除wan6口
 uci delete network.lan.type                                  # 关闭桥接选项(同下步互斥)
@@ -62,13 +62,13 @@ uci commit ttyd
 EOF
 
 echo '设置密码为空'
-sed -i '/CYXluq4wUazHjmCDBCqXF/d' $ZZZ
+sed -i '/CYXluq4wUazHjmCDBCqXF/d' package/lean/default-settings/files/zzz-default-settings
 
 echo '去除防火墙规则'
-sed -i '/to-ports 53/d' $ZZZ
+sed -i '/to-ports 53/d' package/lean/default-settings/files/zzz-default-settings
 
 echo '设置个性名字'
-sed -i "s/OpenWrt /geomch. compiled in $(TZ=UTC-8 date "+%Y.%m.%d") @ OpenWrt /g" $ZZZ
+sed -i "s/OpenWrt /geomch. compiled in $(TZ=UTC-8 date "+%Y.%m.%d") @ OpenWrt /g" package/lean/default-settings/files/zzz-default-settings
 
 echo '设置个性banner'
 cat > package/base-files/files/etc/banner <<EOF

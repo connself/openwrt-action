@@ -1,9 +1,13 @@
+#!/bin/bash
+# Please use the PVE command line to run the shell script.
 # 个人Github地址（自行更改）
 export Apidz="connself/openwrt-action"
 export Openwrt_Path="/tmp/openwrt"
 export Download_Path="/tmp/openwrt/download"
 export Creatlxc_Path="/tmp/openwrt/creatlxc"
 export Backup_Path="/tmp/openwrt/backup"
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 export Version="2023.04.18"
 # pause
 pause(){
@@ -28,27 +32,24 @@ TIME(){
     [[ $# -lt 2 ]] && echo -e "\e[36m\e[0m ${1}" || echo -e "\e[36m\e[0m ${Color}${2}\e[0m"
     }
 }
-# 更新OpenWrt CT模板
+# 更新OpenWrt CT模板II
 update_CT_Templates(){
     [[ ! -d ${Download_Path} ]] && mkdir -p ${Download_Path} || rm -rf ${Download_Path}/*
     echo
-    TIME y "下载OpenWrt固件"
+    TIME g "查询最新固件版本"
+    export latestTag=$(curl -Ls "https://api.github.com/repos/${Apidz}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    echo " ${latestTag}"
     echo
-    echo " 通过直连下载固件中..."
-    wget -q --timeout=10 --tries=2 --show-progress https://github.com/${Apidz}/releases/download/$(curl -Ls "https://api.github.com/repos/${Apidz}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
+    TIME y "下载OpenWrt固件"
+    echo " 通过https://ghproxy.com/代理下载固件中..."
+    wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
     if [[ $? -ne 0 ]];then
-        echo " 通过https://ghproxy.com/代理下载固件中..."
-        wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.com/https://github.com/${Apidz}/releases/download/$(curl -Ls "https://api.github.com/repos/${Apidz}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
+        echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
+        wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
         if [[ $? -ne 0 ]];then
-            echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
-            wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/$(curl -Ls "https://api.github.com/repos/${Apidz}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
-            if [[ $? -ne 0 ]];then
-                TIME r "固件下载失败，请检测网络，或者网址是否正确！"
-                echo
-                exit 1
-            else
-                TIME g "固件镜像：下载成功！"
-            fi
+            TIME r "固件下载失败，请检测网络，或者网址是否正确！"
+            echo
+            exit 1
         else
             TIME g "固件镜像：下载成功！"
         fi
@@ -61,23 +62,22 @@ update_CT_Templates(){
     TIME y "更新OpenWrt CT模板"
     echo
     TIME g "解包OpenWrt img镜像..."
-    # cd ${Download_Path} && gzip -d openwrt.rootfs.img.gz && unsquashfs openwrt.rootfs.img
     cd ${Download_Path} && unsquashfs openwrt.rootfs.img
     TIME g "CT模板：上传至/var/lib/vz/template/cache目录..."
-    if [[ -f /var/lib/vz/template/cache/geomch-openwrt.rootfs.tar.gz ]]; then
-        rm -f /var/lib/vz/template/cache/geomch-openwrt.rootfs.tar.gz
+    if [[ -f /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz ]]; then
+        rm -f /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz
     fi
-    cd ${Download_Path}/squashfs-root && tar zcf /var/lib/vz/template/cache/geomch-openwrt.rootfs.tar.gz ./* && cd ../.. && rm -rf ${Download_Path}
+    cd ${Download_Path}/squashfs-root && gzip -d openwrt.rootfs.img.gz && tar zcf /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz ./* && cd ../.. && rm -rf ${Download_Path}
     TIME g "CT模板：上传成功！"
-    ctsize=`ls -l /var/lib/vz/template/cache/geomch-openwrt.rootfs.tar.gz | awk '{print $5}'`    
+    ctsize=`ls -l /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz | awk '{print $5}'`    
     TIME g "CT模板：${ctsize}字节"
 }
 # 容器ID
 pct_id(){
     echo
     while :; do
-        read -t 30 -p " 请输入OpenWrt容器ID[默认100]：" id || echo
-        id=${id:-100}
+        read -t 30 -p " 请输入OpenWrt容器ID[默认110]：" id || echo
+        id=${id:-110}
         n1=`echo ${id} | sed 's/[0-9]//g'`
         if [[ ! -z $n1 ]]; then
             TIME r "输入错误，请重新输入！"
@@ -106,8 +106,8 @@ pct_hostname(){
 pct_rootfssize(){
     echo
     while :; do
-        read -t 30 -p " 请输入OpenWrt分区大小[GB，默认6]：" rootfssize || echo
-        rootfssize=${rootfssize:-6}
+        read -t 30 -p " 请输入OpenWrt分区大小[GB，默认4]：" rootfssize || echo
+        rootfssize=${rootfssize:-4}
         n3=`echo ${rootfssize} | sed 's/[0-9]//g'`
         if [[ ! -z $n3 ]]; then
             TIME r "输入错误，请重新输入！"
@@ -197,7 +197,7 @@ pct_net(){
         1)
             cat > ${Creatlxc_Path}/creat_openwrt <<-EOF
 		pct create ${id} \\
-		local:vztmpl/geomch-openwrt.rootfs.tar.gz \\
+		local:vztmpl/geomch.openwrt.rootfs.tar.gz \\
 		--rootfs local-lvm:${rootfssize} \\
 		--ostype unmanaged \\
 		--hostname ${hostname} \\
@@ -216,7 +216,7 @@ pct_net(){
         2)
             cat > ${Creatlxc_Path}/creat_openwrt <<-EOF
 		pct create ${id} \\
-		local:vztmpl/geomch-openwrt.rootfs.tar.gz \\
+		local:vztmpl/geomch.openwrt.rootfs.tar.gz \\
 		--rootfs local-lvm:${rootfssize} \\
 		--ostype unmanaged \\
 		--hostname ${hostname} \\
@@ -236,7 +236,7 @@ pct_net(){
         3)
             cat > ${Creatlxc_Path}/creat_openwrt <<-EOF
 		pct create ${id} \\
-		local:vztmpl/geomch-openwrt.rootfs.tar.gz \\
+		local:vztmpl/geomch.openwrt.rootfs.tar.gz \\
 		--rootfs local-lvm:${rootfssize} \\
 		--ostype unmanaged \\
 		--hostname ${hostname} \\
@@ -257,7 +257,7 @@ pct_net(){
         4)
             cat > ${Creatlxc_Path}/creat_openwrt <<-EOF
 		pct create ${id} \\
-		local:vztmpl/geomch-openwrt.rootfs.tar.gz \\
+		local:vztmpl/geomch.openwrt.rootfs.tar.gz \\
 		--rootfs local-lvm:${rootfssize} \\
 		--ostype unmanaged \\
 		--hostname ${hostname} \\
@@ -431,13 +431,13 @@ install_tools(){
     TIME y "检测脚本依赖..."
     pve_pkgs="curl wget squashfs-tools"
     apt update
-    for i in ${pve_pkgs}; do
-        if [[ $(apt list --installed | grep -o "^${i}\/" | wc -l) -ge 1 ]]; then
-            TIME g "${i} 已安装"
+    for pkg in ${pve_pkgs}; do
+        if [[ $(apt list --installed | grep -o "^${pkg}\/" | wc -l) -ge 1 ]]; then
+            TIME g "${pkg} 已安装"
         else
-            TIME r "${i} 未安装"
-            TIME g "开始安装${i} ..."
-            apt install -y ${i}
+            TIME r "${pkg} 未安装"
+            TIME g "开始安装${pkg} ..."
+            apt install -y ${pkg}
         fi
     done
 }
