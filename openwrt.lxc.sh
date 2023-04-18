@@ -1,18 +1,10 @@
 # 个人Github地址（自行更改）
 export Apidz="connself/openwrt-action"
-# release的tag名称（自行更改）
-export Tag_Name="AutoUpdate-lxc"
-# 固件搜索正则表达式（自行更改）
-export Firmware_Regex="[0-9]+\.[0-9]+.*?rootfs.*?\.img\.gz"
-export Github_API="https://api.github.com/repos/${Apidz}/releases/tags/${Tag_Name}"
-export Release_Download_URL="https://github.com/${Apidz}/releases/download/${Tag_Name}"
 export Openwrt_Path="/tmp/openwrt"
 export Download_Path="/tmp/openwrt/download"
 export Creatlxc_Path="/tmp/openwrt/creatlxc"
 export Backup_Path="/tmp/openwrt/backup"
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export Version="2022.11.13"
+export Version="2023.04.18"
 # pause
 pause(){
     read -n 1 -p " Press any key to continue... " input
@@ -36,67 +28,20 @@ TIME(){
     [[ $# -lt 2 ]] && echo -e "\e[36m\e[0m ${1}" || echo -e "\e[36m\e[0m ${Color}${2}\e[0m"
     }
 }
-# 更新OpenWrt CT模板I
-release_chose(){
-    echo
-    releases=`egrep -o "${Firmware_Regex}" ${Download_Path}/Github_Tags | uniq`
-    TIME g "Github云端固件"
-    echo "${releases}"
-    if [[ -z ${releases} ]]; then
-        TIME r "当前云端固件列表为空，请检查！"
-        exit 0
-    fi
-    choicesnum=`echo "${releases}" | wc -l`
-    while :; do
-        read -t 30 -p " 请选择要下载的固件[n，默认n=1，即倒数第1个最新固件]：" release
-        release=${release:-1}
-        n0=`echo ${release} | sed 's/[0-9]//g'`
-        if [[ ! -z $n0 ]]; then
-            TIME r "输入错误，请输入数字！"
-        elif [[ ${release} -eq 0 ]] || [[ ${release} -gt ${choicesnum} ]]; then
-            TIME r "输入超出范围，请重新输入！"
-        else
-            echo "${releases}" | tail -n ${release} | head -n 1 > ${Download_Path}/DOWNLOAD_URL
-            TIME g "下载固件：$(cat ${Download_Path}/DOWNLOAD_URL)"
-            break
-        fi
-    done
-}
-# 更新OpenWrt CT模板II
+# 更新OpenWrt CT模板
 update_CT_Templates(){
     [[ ! -d ${Download_Path} ]] && mkdir -p ${Download_Path} || rm -rf ${Download_Path}/*
     echo
     TIME y "下载OpenWrt固件"
     echo
-    TIME g "获取固件API信息..."
-    wget -q --timeout=10 --tries=2 --show-progress ${Github_API} -O ${Download_Path}/Github_Tags
-    if [[ $? -ne 0 ]];then
-        wget -q --timeout=5 --tries=2 --show-progress https://ghproxy.com/${Github_API} -O ${Download_Path}/Github_Tags
-        if [[ $? -ne 0 ]];then
-            wget -q --timeout=5 --tries=2 --show-progress https://ghproxy.conns.eu.org/${Github_API} -O ${Download_Path}/Github_Tags
-            if [[ $? -ne 0 ]];then
-                TIME r "获取固件API信息失败，请检测网络，或者网址是否正确！"
-                echo
-                exit 1
-            else
-                TIME g "获取固件API信息成功！"
-            fi
-        else
-            TIME g "获取固件API信息成功！"
-        fi
-    else
-        TIME g "获取固件API信息成功！"
-    fi
-    release_chose
-    [ -s ${Download_Path}/DOWNLOAD_URL ] && {
     echo " 通过直连下载固件中..."
-    wget -q --timeout=10 --tries=2 --show-progress ${Release_Download_URL}/$(cat ${Download_Path}/DOWNLOAD_URL) -O ${Download_Path}/openwrt.rootfs.img.gz
+    wget -q --timeout=10 --tries=2 --show-progress https://github.com/${Apidz}/releases/download/$(curl -Ls "https://api.github.com/repos/${Apidz}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
     if [[ $? -ne 0 ]];then
         echo " 通过https://ghproxy.com/代理下载固件中..."
-        wget -q --timeout=3 --tries=2 --show-progress https://ghproxy.com/${Release_Download_URL}/$(cat ${Download_Path}/DOWNLOAD_URL) -O ${Download_Path}/openwrt.rootfs.img.gz
+        wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.com/https://github.com/${Apidz}/releases/download/$(curl -Ls "https://api.github.com/repos/${Apidz}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
         if [[ $? -ne 0 ]];then
             echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
-            wget -q --timeout=3 --tries=2 --show-progress https://ghproxy.conns.eu.org/${Release_Download_URL}/$(cat ${Download_Path}/DOWNLOAD_URL) -O ${Download_Path}/openwrt.rootfs.img.gz
+            wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/$(curl -Ls "https://api.github.com/repos/${Apidz}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/openwrt-x86-64-generic-squashfs-rootfs.img -O ${Download_Path}/openwrt.rootfs.img
             if [[ $? -ne 0 ]];then
                 TIME r "固件下载失败，请检测网络，或者网址是否正确！"
                 echo
@@ -110,14 +55,14 @@ update_CT_Templates(){
     else
         TIME g "固件镜像：下载成功！"
     fi
-    }
     imgsize=`ls -l ${Download_Path}/openwrt.rootfs.img.gz | awk '{print $5}'`
     TIME g "固件镜像：${imgsize}字节"
     echo
     TIME y "更新OpenWrt CT模板"
     echo
     TIME g "解包OpenWrt img镜像..."
-    cd ${Download_Path} && gzip -d openwrt.rootfs.img.gz && unsquashfs openwrt.rootfs.img
+    # cd ${Download_Path} && gzip -d openwrt.rootfs.img.gz && unsquashfs openwrt.rootfs.img
+    cd ${Download_Path} && unsquashfs openwrt.rootfs.img
     TIME g "CT模板：上传至/var/lib/vz/template/cache目录..."
     if [[ -f /var/lib/vz/template/cache/geomch-openwrt.rootfs.tar.gz ]]; then
         rm -f /var/lib/vz/template/cache/geomch-openwrt.rootfs.tar.gz
@@ -519,11 +464,6 @@ onekey_help() {
 
         # 个人Github地址（自行更改）
         export Apidz="xxx/xxx"
-        # release的tag名称（自行更改）
-        export Tag_Name="xxx"
-        # 固件搜索正则表达式（自行更改）
-        例如：固件名称为18.06-lede-x86-64-lxc-202203032218-rootfs-66afdf.img.gz，则可设置如下
-        export Firmware_Regex="18\.06.*?rootfs.*?\.img\.gz"
 
     ---------------------------------------------------------------------------------------------
 
