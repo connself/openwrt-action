@@ -12,11 +12,24 @@
 
 echo "--------------diy-part2 start--------------"
 
+# echo '去掉autocore-x86型号信息中的'Default string - '显示'
+# sed -i "s/\${g}' - '//g" package/lean/autocore/files/x86/autocore
+echo '调整 x86 型号只显示 CPU 型号'
+sed -i 's/${g}.*/${a}${b}${c}${d}${e}${f}/g' package/lean/autocore/files/x86/autocore
+
+echo '去掉autocore-x86型号信息中的'(CpuMark: xxxx Scores)'显示'
+sed -i 's/ <%=luci.sys.exec("cat \/etc\/bench.log") or " "%>//g' package/lean/autocore/files/x86/index.htm
+
+
 echo '设置时区'
 sed -i "s/timezone='UTC'/timezone='CST-8'/" package/base-files/files/bin/config_generate
 sed -i "/timezone='CST-8'/a \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ set system.@system[-1].zonename='Asia/Shanghai'" package/base-files/files/bin/config_generate
+sed -i "s/add_list system.ntp.server='0.openwrt.pool.ntp.org'/add_list system.ntp.server='ntp.aliyun.com'/" package/base-files/files/bin/config_generate
+sed -i "s/add_list system.ntp.server='1.openwrt.pool.ntp.org'/add_list system.ntp.server='time1.cloud.tencent.com'/" package/base-files/files/bin/config_generate
+sed -i "s/add_list system.ntp.server='2.openwrt.pool.ntp.org'/add_list system.ntp.server='time.ustc.edu.cn'/" package/base-files/files/bin/config_generate
+sed -i "s/add_list system.ntp.server='3.openwrt.pool.ntp.org'/add_list system.ntp.server='cn.pool.ntp.org'/" package/base-files/files/bin/config_generate
 
-echo '修改 IP设置'
+echo '修改网络设置'
 cat >package/base-files/files/etc/networkip <<-EOF
 uci delete network.wan                                       # 删除wan口
 uci delete network.wan6                                      # 删除wan6口
@@ -64,8 +77,8 @@ EOF
 echo '设置密码为空'
 sed -i '/CYXluq4wUazHjmCDBCqXF/d' package/lean/default-settings/files/zzz-default-settings
 
-echo '去除防火墙规则'
-sed -i '/to-ports 53/d' package/lean/default-settings/files/zzz-default-settings
+echo '删除53端口重定向'
+sed -i '/REDIRECT[ \t]\+--to-ports[ \t]\+53/d' package/lean/default-settings/files/zzz-default-settings
 
 echo '设置个性名字'
 sed -i "s/OpenWrt /geomch. compiled in $(TZ=UTC-8 date "+%Y.%m.%d") @ OpenWrt /g" package/lean/default-settings/files/zzz-default-settings
