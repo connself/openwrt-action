@@ -41,13 +41,13 @@ update_CT_Templates(){
     echo "最新版本：${latestTag}"
     echo
     TIME y "下载OpenWrt固件"
-    # echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
-    # wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
-    echo " 直连下载固件中..."
-    wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
+    echo " 通过https://ghproxy.com/代理下载固件中..."
+    wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
+    # echo " 直连下载固件中..."
+    # wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
     if [[ $? -ne 0 ]];then
-        echo " 通过https://ghproxy.com/代理下载固件中..."
-        wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
+        echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
+        wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
         if [[ $? -ne 0 ]];then
             TIME r "固件下载失败，请检测网络，或者网址是否正确！"
             echo
