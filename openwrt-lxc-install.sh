@@ -8,7 +8,7 @@ export Creatlxc_Path="/tmp/openwrt/creatlxc"
 export Backup_Path="/tmp/openwrt/backup"
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
-export Version="2023.04.18"
+export Version="2023.04.19"
 # pause
 pause(){
     read -n 1 -p " Press any key to continue... " input
@@ -76,8 +76,8 @@ update_CT_Templates(){
 pct_id(){
     echo
     while :; do
-        read -t 30 -p " 请输入OpenWrt容器ID[默认110]：" id || echo
-        id=${id:-110}
+        read -t 30 -p " 请输入OpenWrt容器ID[默认100]：" id || echo
+        id=${id:-100}
         n1=`echo ${id} | sed 's/[0-9]//g'`
         if [[ ! -z $n1 ]]; then
             TIME r "输入错误，请重新输入！"
