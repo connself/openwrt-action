@@ -36,16 +36,16 @@ TIME(){
 update_CT_Templates(){
     [[ ! -d ${Download_Path} ]] && mkdir -p ${Download_Path} || rm -rf ${Download_Path}/*
     echo
-    TIME g "查询最新固件版本"
+    TIME y "查询OpenWrt固件"
     export latestTag=$(curl -Ls "https://api.github.com/repos/${Apidz}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    echo " ${latestTag}"
+    echo "最新版本：${latestTag}"
     echo
     TIME y "下载OpenWrt固件"
-    echo " 通过https://ghproxy.com/代理下载固件中..."
-    wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz -O ${Download_Path}/openwrt.rootfs.img.gz
+    echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
+    wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz -O ${Download_Path}/openwrt.rootfs.img.gz
     if [[ $? -ne 0 ]];then
-        echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
-        wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz -O ${Download_Path}/openwrt.rootfs.img.gz
+        echo " 通过https://ghproxy.com/代理下载固件中..."
+        wget -q --timeout=10 --tries=2 --show-progress https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz -O ${Download_Path}/openwrt.rootfs.img.gz
         if [[ $? -ne 0 ]];then
             TIME r "固件下载失败，请检测网络，或者网址是否正确！"
             echo
