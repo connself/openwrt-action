@@ -17,7 +17,7 @@ echo "--------------diy-part2 start--------------"
 echo '调整 x86 型号只显示 CPU 型号'
 sed -i 's/${g}.*/${a}${b}${c}${d}${e}${f}/g' package/lean/autocore/files/x86/autocore
 
-echo '去掉autocore-x86型号信息中的'(CpuMark: xxxx Scores)'显示'
+echo '去掉autocore-x86型号信息中的 CpuMark: xxxx Scores 显示'
 sed -i 's/ <%=luci.sys.exec("cat \/etc\/bench.log") or " "%>//g' package/lean/autocore/files/x86/index.htm
 
 
