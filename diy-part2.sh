@@ -101,4 +101,3 @@ cat > package/base-files/files/etc/banner <<EOF
         _________________________________________
 EOF
 # cp $GITHUB_WORKSPACE/banner package/base-files/files/etc/banner
-
