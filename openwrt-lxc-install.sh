@@ -66,12 +66,10 @@ update_CT_Templates(){
 
     TIME g "解压OpenWrt img.gz..."
     gzip -d openwrt.rootfs.img.gz
+    ls
 
     TIME g "解包OpenWrt img镜像..."
     unsquashfs openwrt.rootfs.img
-
-    TIME g "解包OpenWrt 目录结构..."
-    ls
 
     TIME g "CT模板：上传至/var/lib/vz/template/cache目录..."
     if [[ -f /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz ]]; then
