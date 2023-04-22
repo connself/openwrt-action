@@ -158,6 +158,20 @@ pct_memory(){
         fi
     done
 }
+# 虚拟内存大小
+pct_swap(){
+    echo
+    while :; do
+        read -t 30 -p " 请输入OpenWrt虚拟内存大小[MB，默认512]：" swap || echo
+        swap=${swap:-512}
+        n6=`echo ${swap} | sed 's/[0-9]//g'`
+        if [[ ! -z $n6 ]]; then
+            TIME r "输入错误，请重新输入！"
+        else
+            break
+        fi
+    done
+}
 # 开机自启
 pct_onboot(){
     echo
@@ -185,8 +199,8 @@ pct_order(){
     while :; do
         read -t 30 -p " 请输入OpenWrt启动顺序[默认1]：" order || echo
         order=${order:-1}
-        n6=`echo ${order} | sed 's/[0-9]//g'`
-        if [[ ! -z $n6 ]]; then
+        n7=`echo ${order} | sed 's/[0-9]//g'`
+        if [[ ! -z $n7 ]]; then
             TIME r "输入错误，请重新输入！"
         elif [[ ${order} == 0 ]]; then
             TIME r "不能为0，请重新输入！"
@@ -212,7 +226,7 @@ pct_net(){
 		--arch amd64 \\
 		--cores ${cores} \\
 		--memory ${memory} \\
-		--swap 0 \\
+		--swap ${swap} \\
 		--net0 bridge=vmbr0,name=eth0 \\
 		--unprivileged 0 \\
 		--features nesting=1 \\
@@ -231,7 +245,7 @@ pct_net(){
 		--arch amd64 \\
 		--cores ${cores} \\
 		--memory ${memory} \\
-		--swap 0 \\
+		--swap ${swap} \\
 		--net0 bridge=vmbr0,name=eth0 \\
 		--net1 bridge=vmbr1,name=eth1 \\
 		--unprivileged 0 \\
@@ -251,7 +265,7 @@ pct_net(){
 		--arch amd64 \\
 		--cores ${cores} \\
 		--memory ${memory} \\
-		--swap 0 \\
+		--swap ${swap} \\
 		--net0 bridge=vmbr0,name=eth0 \\
 		--net1 bridge=vmbr1,name=eth1 \\
 		--net2 bridge=vmbr2,name=eth2 \\
@@ -272,7 +286,7 @@ pct_net(){
 		--arch amd64 \\
 		--cores ${cores} \\
 		--memory ${memory} \\
-		--swap 0 \\
+		--swap ${swap} \\
 		--net0 bridge=vmbr0,name=eth0 \\
 		--net1 bridge=vmbr1,name=eth1 \\
 		--net2 bridge=vmbr2,name=eth2 \\
@@ -305,6 +319,7 @@ creat_lxc_openwrt1(){
     pct_rootfssize
     pct_cores
     pct_memory
+    pct_swap
     pct_onboot
     pct_net
 }
