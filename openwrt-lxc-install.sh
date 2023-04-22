@@ -8,7 +8,7 @@ export Creatlxc_Path="/tmp/openwrt/creatlxc"
 export Backup_Path="/tmp/openwrt/backup"
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
-export Version="2023.04.19"
+export Version="2023.04.22"
 # pause
 pause(){
     read -n 1 -p " Press any key to continue... " input
@@ -41,13 +41,13 @@ update_CT_Templates(){
     echo "最新版本：${latestTag}"
     echo
     TIME y "下载OpenWrt固件"
-    echo " 通过https://ghproxy.com/代理下载固件中..."
-    wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
-    # echo " 直连下载固件中..."
-    # wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
+    # echo " 通过https://ghproxy.com/代理下载固件中..."
+    #wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
+    echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
+    wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
     if [[ $? -ne 0 ]];then
-        echo " 通过https://ghproxy.conns.eu.org/代理下载固件中..."
-        wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.conns.eu.org/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
+        echo " 直连下载固件中..."
+        wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
         if [[ $? -ne 0 ]];then
             TIME r "固件下载失败，请检测网络，或者网址是否正确！"
             echo
@@ -65,6 +65,9 @@ update_CT_Templates(){
     echo
     TIME g "解包OpenWrt img镜像..."
     cd ${Download_Path} && gzip -d openwrt.rootfs.img.gz && unsquashfs openwrt.rootfs.img
+    echo
+    TIME g "解包OpenWrt 目录结构..."
+    ls
     TIME g "CT模板：上传至/var/lib/vz/template/cache目录..."
     if [[ -f /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz ]]; then
         rm -f /var/lib/vz/template/cache/geomch.openwrt.rootfs.tar.gz
@@ -177,8 +180,8 @@ pct_onboot(){
 pct_order(){
     echo
     while :; do
-        read -t 30 -p " 请输入OpenWrt启动顺序[默认2]：" order || echo
-        order=${order:-2}
+        read -t 30 -p " 请输入OpenWrt启动顺序[默认1]：" order || echo
+        order=${order:-1}
         n6=`echo ${order} | sed 's/[0-9]//g'`
         if [[ ! -z $n6 ]]; then
             TIME r "输入错误，请重新输入！"
