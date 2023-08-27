@@ -1,8 +1,12 @@
 # OpenWrt_x86
 自编译OpenWrt x86固件
-输出Hyper-V的vhdx虚拟磁盘,VMWare Workstation的vmdk虚拟磁盘以及用于安装的img镜像 
+
+输出Hyper-V的vhdx虚拟磁盘,VMWare Workstation的vmdk虚拟磁盘以及用于安装的img镜像
+
 提供PVE一键安装脚本
+
 有其它需求可以自行使用StarWind V2V Converter工具转换！  
+
 下载地址：[GitHub Releases](https://github.com/connself/openwrt-action/releases)  
 
 ### 鸣谢
