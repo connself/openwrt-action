@@ -3,7 +3,9 @@
 
 输出Hyper-V的vhdx虚拟磁盘,VMWare Workstation的vmdk虚拟磁盘以及用于安装的img镜像
 
-提供PVE一键安装脚本
+PVE一键安装脚本
+
+```bash -c  "$(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc-install.sh)"```
 
 有其它需求可以自行使用StarWind V2V Converter工具转换！  
 
