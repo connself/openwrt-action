@@ -153,7 +153,7 @@ jobs:
         awk '{print "	" $0}' Plug-2 > Plug-in
         echo
         echo
-        echo "	      已选插件列表"
+        echo "已选插件列表"
         cat Plug-in
         rm -rf {Plug-in,Plug-2}
         echo
