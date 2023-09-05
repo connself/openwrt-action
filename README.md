@@ -26,5 +26,6 @@ PVE一键安装脚本
 - [dev-drprasad/delete-older-releases](https://github.com/dev-drprasad/delete-older-releases)
 - [peter-evans/repository-dispatch](https://github.com/peter-evans/repository-dispatch)
 - [kenzok8/openwrt-packages](https://github.com/kenzok8/openwrt-packages)
+- [haiibo/openwrt-packages](https://github.com/haiibo/openwrt-packages)
 - [jerrykuku/luci-theme-argon](https://github.com/jerrykuku/luci-theme-argon)
 - [roacn/build-actions](https://github.com/roacn/build-actions)
