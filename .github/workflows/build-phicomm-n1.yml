@@ -1,10 +1,6 @@
-name: Build OpenWrt
+name: 编译Phicomm-N1固件
 
 on:
-  # push:
-    # branches: [ main ]
-  # pull_request:
-    # branches: [ main ]
   repository_dispatch:
   workflow_dispatch:
     inputs:
@@ -13,24 +9,53 @@ on:
         required: false
         default: 'false'
 
+  schedule:
+    - cron: 23 12 * * 4
+  
+
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede.git
   REPO_BRANCH: master
-  FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: .config
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2.sh
+  FEEDS_CONF: x86_64/feeds.conf.default
+  CONFIG_FILE: x86_64/.config
+  DIY_P1_SH: x86_64/diy-part1.sh
+  DIY_P2_SH: x86_64/diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
+  FILE_NAME: Phicomm-N1
   SERVERCHAN_SCKEY: ${{ secrets.SERVERCHAN_SCKEY }}
   PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
   TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
   TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
 jobs:
+  Checka:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get Commit Hash
+      id: getHash
+      run: |
+        git clone --depth 1 $REPO_URL -b $REPO_BRANCH .
+        echo "commitHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Compare Commit Hash
+      id: cacheHash
+      uses: actions/cache@main
+      with:
+        path: .commitHash
+        key: HEAD-${{ steps.getHash.outputs.commitHash }}
+
+    - name: Save New Commit Hash
+      if: steps.cacheHash.outputs.cache-hit != 'true'
+      run: |
+        echo ${{ steps.getHash.outputs.commitHash }} | tee .commitHash
+
   build:
+    needs: [Checka]
+    if: ${{ needs.Checka.outputs.output != 'hello' || github.event.inputs.checkupdates54 == 'true'}}
     runs-on: ubuntu-22.04
     
     steps:
@@ -86,7 +111,7 @@ jobs:
         sudo -E apt-get -y purge azure-cli* docker* ghc* zulu* llvm* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* dotnet* moby* snap* aspnetcore*
         [ -n "$AGENT_TOOLSDIRECTORY" ] && sudo rm -rf "$AGENT_TOOLSDIRECTORY"
         sudo -E apt-get update
-        sudo -E apt-get -y install $(curl -fsSL https://is.gd/depends_ubuntu_2204)
+        sudo -E apt-get -y install $(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/diy/ubuntu2204-make-openwrt-depends)
         sudo -E apt-get -y install libfuse-dev
         sudo -E apt-get -y autoremove --purge
         sudo -E apt-get clean
@@ -96,9 +121,9 @@ jobs:
       if: env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
       run: |
         if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
-          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在编译openwrt x86固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在编译openwrt ${{ env.FILE_NAME }}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
         elif [[ "${SERVERCHAN_SCKEY}" == "PUSH" ]]; then
-          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译openwrt x86固件" --data "content=🎉 主人：您正在编译openwrt x86固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译openwrt ${{ env.FILE_NAME }}固件" --data "content=🎉 主人：您正在编译openwrt ${{ env.FILE_NAME }}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
         fi
 
     - name: 克隆源码
@@ -217,21 +242,23 @@ jobs:
         name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
 
-    - name: 生成release标签
+    - name: 生成release信息
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        echo "release_name=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
-        echo "如果您觉得好用，请点亮右上角的Star！" >> release.txt
+        echo "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
         
     - name: 发布固件
-      uses: ncipollo/release-action@v1.11.1
-      #if: steps.tag.outputs.status == 'success' && !cancelled() &&!contains(needs.check.outputs.status, 'failure')
+      uses: ncipollo/release-action@v1
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
         commit: "main"
-        tag: ${{ steps.tag.outputs.release_tag }}
+        name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
+        allowUpdates: true
+        tag: ${{ env.FILE_NAME }}
         token: ${{ secrets.token_release }}
         bodyFile: release.txt
         artifacts: ${{ env.FIRMWARE }}/*
@@ -240,22 +267,7 @@ jobs:
       if: env.COMPILESTATUS == 'success' && env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.COMPILESTATUS == 'success' && env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
       run: |
         if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
-          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您编译的openwrt x86固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
         elif [[ "${SERVERCHAN_SCKEY}" == "PUSH" ]]; then
-          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="编译成功" --data "content=我亲爱的✨主人✨：您编译的openwrt x86固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
+          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="编译成功" --data "content=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
         fi
-
-    - name: 清理workflow
-      uses: GitRML/delete-workflow-runs@main
-      with:
-        retain_days: 1
-        keep_minimum_runs: 3
-
-    - name: 清理Releases
-      uses: dev-drprasad/delete-older-releases@v0.1.0
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-      with:
-        keep_latest: 15
-        delete_tags: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.token_release }}

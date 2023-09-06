@@ -1,0 +1,274 @@
+name: 编译x86_64固件
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+
+  schedule:
+    - cron: 23 10 * * 5
+    - cron: 20 10 * * 3
+  
+
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede.git
+  REPO_BRANCH: master
+  FEEDS_CONF: x86_64/feeds.conf.default
+  CONFIG_FILE: x86_64/.config
+  DIY_P1_SH: x86_64/diy-part1.sh
+  DIY_P2_SH: x86_64/diy-part2.sh
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: true
+  TZ: Asia/Shanghai
+  FILE_NAME: x86_64
+  SERVERCHAN_SCKEY: ${{ secrets.SERVERCHAN_SCKEY }}
+  PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+
+jobs:
+  Checka:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get Commit Hash
+      id: getHash
+      run: |
+        git clone --depth 1 $REPO_URL -b $REPO_BRANCH .
+        echo "commitHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Compare Commit Hash
+      id: cacheHash
+      uses: actions/cache@main
+      with:
+        path: .commitHash
+        key: HEAD-${{ steps.getHash.outputs.commitHash }}
+
+    - name: Save New Commit Hash
+      if: steps.cacheHash.outputs.cache-hit != 'true'
+      run: |
+        echo ${{ steps.getHash.outputs.commitHash }} | tee .commitHash
+
+  build:
+    needs: [Checka]
+    if: ${{ needs.Checka.outputs.output != 'hello' || github.event.inputs.checkupdates54 == 'true'}}
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: 创建编译空间挂载点
+      run: |
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+        
+    - name: 最大化编译空间
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 2048
+        swap-size-mb: 1024
+        build-mount-path: /workdir
+        overprovision-lvm: 'true'
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-docker-images: 'true'
+    
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: 检查服务器配置
+      run: |
+        echo "警告⚠"
+        echo "若分配的服务器性能不足，务必及时取消，重新运行！"
+        echo "已知编译成功CPU型号：8370C,8272CL"
+        echo "已知性能不足CPU型号：8171M"
+        echo -e "-------------- ------------CPU信息------------------------------------------\n"
+        echo "CPU物理数量:$(cat /proc/cpuinfo| grep "physical id"| sort| uniq| wc -l)"
+        echo -e "CPU核心及版本信息：$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
+        echo "-------------------------------内存信息-------------------------------------------"
+        echo "已安装内存详细信息："
+        sudo lshw -short -C memory | grep GiB
+        echo -e "\n"
+        echo "-----------------------------硬盘信息---------------------------------------------"
+        echo -e  "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l) \n"
+        echo "硬盘详情："
+        echo " 系统空间       类型   总数  已用  可用  使用率"
+        df -Th
+
+    - name: 初始化编译环境
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo -E swapoff -a
+        sudo -E rm -f /swapfile
+        sudo -E docker image prune -a -f
+        sudo -E snap set system refresh.retain=2
+        sudo -E rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d /usr/local/lib/android
+        sudo -E apt-get -y purge azure-cli* docker* ghc* zulu* llvm* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* dotnet* moby* snap* aspnetcore*
+        [ -n "$AGENT_TOOLSDIRECTORY" ] && sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        sudo -E apt-get update
+        sudo -E apt-get -y install $(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/diy/ubuntu2204-make-openwrt-depends)
+        sudo -E apt-get -y install libfuse-dev
+        sudo -E apt-get -y autoremove --purge
+        sudo -E apt-get clean
+        sudo timedatectl set-timezone "$TZ"
+
+    - name: 编译开始TG或pushplus通知
+      if: env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
+      run: |
+        if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在编译openwrt ${{ env.FILE_NAME }}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+        elif [[ "${SERVERCHAN_SCKEY}" == "PUSH" ]]; then
+          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译openwrt ${{ env.FILE_NAME }}固件" --data "content=🎉 主人：您正在编译openwrt ${{ env.FILE_NAME }}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+        fi
+
+    - name: 克隆源码
+      working-directory: /workdir
+      run: |
+        df -hT $PWD
+        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+
+    - name: 加载自定义feeds
+      run: |
+        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+        chmod +x $DIY_P1_SH
+        cd openwrt
+        $GITHUB_WORKSPACE/$DIY_P1_SH
+
+    - name: 更新feeds
+      run: cd openwrt && ./scripts/feeds update -a
+
+    - name: 安装feeds
+      run: cd openwrt && ./scripts/feeds install -a
+
+    - name: 加载自定义配置
+      run: |
+        [ -e files ] && mv files openwrt/files
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        chmod +x $DIY_P2_SH
+        cd openwrt
+        $GITHUB_WORKSPACE/$DIY_P2_SH
+
+    - name: SSH connection to Actions
+      uses: P3TERX/ssh2actions@v1.0.0
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      env:
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+
+    - name: 输出编译信息
+      run: |
+        cd openwrt
+        echo " 系统空间       类型  总数  已用  可用  使用率"
+        df -hT $PWD
+        echo
+        echo "=========================================="
+        grep -i CONFIG_PACKAGE_luci-app .config | grep  -v \# > Plug-in
+        grep -i CONFIG_PACKAGE_luci-theme .config | grep  -v \# >> Plug-in
+        sed -i '/INCLUDE/d' Plug-in > /dev/null 2>&1
+        sed -i 's/CONFIG_PACKAGE_/、/g' Plug-in
+        sed -i '/Transparent_Proxy/d' Plug-in > /dev/null 2>&1
+        sed -i 's/=y/\ /g' Plug-in
+        awk '$0=NR$0' Plug-in > Plug-2
+        awk '{print "	" $0}' Plug-2 > Plug-in
+        echo
+        echo
+        echo "已选插件列表"
+        cat Plug-in
+        rm -rf {Plug-in,Plug-2}
+        echo
+        echo "=========================================="
+        echo
+        echo
+        echo "输出完整插件信息..."
+        echo
+        echo
+        cat .config
+
+    - name: 下载软件包
+      id: package
+      run: |
+        cd openwrt
+        make defconfig
+        make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+
+    - name: 编译固件
+      id: compile
+      run: |
+        cd openwrt
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 || make -j1 V=s
+        echo "status=success" >> $GITHUB_OUTPUT
+        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+        [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+    - name: 检查磁盘空间
+      if: (!cancelled())
+      run: df -hT
+
+    - name: 上传bin目录
+      uses: actions/upload-artifact@main
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: openwrt/bin
+
+    - name: 整理文件
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        cd openwrt/bin/targets/*/*
+        rm -rf packages
+        rm -rf *.buildinfo
+        rm -rf *.manifest
+        rm -rf *-kernel.bin
+        rm -rf sha256sums
+        ls -l
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: 上传固件
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+
+    - name: 生成release信息
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "release_name=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        touch release.txt
+        echo "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！" >> release.txt
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: 发布固件
+      uses: ncipollo/release-action@v1
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      with:
+        commit: "main"
+        name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
+        allowUpdates: true
+        tag: ${{ env.FILE_NAME }}
+        token: ${{ secrets.token_release }}
+        bodyFile: release.txt
+        artifacts: ${{ env.FIRMWARE }}/*
+
+    - name: 编译完成TG或pushplus通知
+      if: env.COMPILESTATUS == 'success' && env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.COMPILESTATUS == 'success' && env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
+      run: |
+        if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+        elif [[ "${SERVERCHAN_SCKEY}" == "PUSH" ]]; then
+          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="编译成功" --data "content=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
+        fi
