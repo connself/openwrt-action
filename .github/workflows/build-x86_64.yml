@@ -206,7 +206,7 @@ jobs:
         cd openwrt
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
-        echo "status=success" >> $GITHUB_OUTPUT
+        echo "COMPILESTATUS=success" >> $GITHUB_ENV
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
@@ -217,14 +217,14 @@ jobs:
 
     - name: 上传bin目录
       uses: actions/upload-artifact@main
-      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      if: env.COMPILESTATUS == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
         name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: openwrt/bin
 
     - name: 整理文件
       id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      if: env.COMPILESTATUS == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         cd openwrt/bin/targets/*/*
         rm -rf packages
@@ -234,27 +234,26 @@ jobs:
         rm -rf sha256sums
         ls -l
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "status=success" >> $GITHUB_OUTPUT
+        echo "ORGANIZERSTATUS=success" >> $GITHUB_ENV
 
     - name: 上传固件
       uses: actions/upload-artifact@main
-      if: steps.organize.outputs.status == 'success' && !cancelled()
+      if: env.COMPILESTATUS == 'success' && !cancelled()
       with:
         name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
 
     - name: 生成release信息
       id: tag
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
         echo "release_name=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
         echo "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！" >> release.txt
-        echo "status=success" >> $GITHUB_OUTPUT
         
     - name: 发布固件
-      uses: ncipollo/release-action@v1.13.0
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      uses: ncipollo/release-action@v1
+      if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
         name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
         tag: ${{ env.FILE_NAME }}
@@ -263,7 +262,7 @@ jobs:
         artifacts: ${{ env.FIRMWARE }}/*
 
     - name: 编译完成TG或pushplus通知
-      if: env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
+      if: env.COMPILESTATUS == 'success' && env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.COMPILESTATUS == 'success' && env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
       run: |
         if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
           curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
