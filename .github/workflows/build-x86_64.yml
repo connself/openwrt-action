@@ -253,19 +253,17 @@ jobs:
         echo "status=success" >> $GITHUB_OUTPUT
         
     - name: 发布固件
-      uses: ncipollo/release-action@v1
+      uses: ncipollo/release-action@v1.13.0
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
-        commit: "main"
         name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
-        allowUpdates: true
         tag: ${{ env.FILE_NAME }}
         token: ${{ secrets.token_release }}
         bodyFile: release.txt
         artifacts: ${{ env.FIRMWARE }}/*
 
     - name: 编译完成TG或pushplus通知
-      if: env.COMPILESTATUS == 'success' && env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.COMPILESTATUS == 'success' && env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
+      if: env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
       run: |
         if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
           curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
