@@ -119,7 +119,7 @@ jobs:
         sudo timedatectl set-timezone "$TZ"
 
     - name: 编译开始TG或pushplus通知
-      if: env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
+      if: (env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH') || (env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE')
       run: |
         if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
           curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在编译openwrt ${{ env.FILE_NAME }}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
@@ -263,7 +263,7 @@ jobs:
         artifacts: ${{ env.FIRMWARE }}/*
 
     - name: 编译完成TG或pushplus通知
-      if: env.COMPILESTATUS == 'success' && env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH' || env.COMPILESTATUS == 'success' && env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'
+      if: env.COMPILESTATUS == 'success' && ((env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH') || (env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'))
       run: |
         if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
           curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
