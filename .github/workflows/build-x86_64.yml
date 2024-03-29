@@ -261,7 +261,7 @@ jobs:
         removeArtifacts: false
         token: ${{ secrets.token_release }}
         bodyFile: release.txt
-        artifacts: ${{ env.FIRMWARE }}
+        artifacts: ${{ env.FIRMWARE }}/*
 
     # - name: 发布固件
     #   if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
