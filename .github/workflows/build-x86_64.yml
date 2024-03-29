@@ -251,28 +251,29 @@ jobs:
         touch release.txt
         echo "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！" >> release.txt
         
-    # - name: 发布固件
-    #   uses: ncipollo/release-action@main
-    #   if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
-    #   with:
-    #     name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
-    #     allowUpdates: true
-    #     tag: ${{ env.FILE_NAME }}
-    #     token: ${{ secrets.token_release }}
-    #     bodyFile: release.txt
-    #     artifacts: ${{ env.FIRMWARE }}/*
-
     - name: 发布固件
+      uses: ncipollo/release-action@main
       if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
-      uses: svenstaro/upload-release-action@v2
       with:
-        repo_token: ${{ secrets.token_release }}
-        file: ${{ env.FIRMWARE }}/*
-        tag: ${{ env.FILE_NAME }}
-        release_name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
-        body: "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！"
-        overwrite: true
-        file_glob: true
+        # name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
+        allowUpdates: true
+        tag: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
+        removeArtifacts: false
+        token: ${{ secrets.token_release }}
+        bodyFile: release.txt
+        artifacts: ${{ env.FIRMWARE }}
+
+    # - name: 发布固件
+    #   if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+    #   uses: svenstaro/upload-release-action@v2
+    #   with:
+    #     repo_token: ${{ secrets.token_release }}
+    #     file: ${{ env.FIRMWARE }}/*
+    #     tag: ${{ env.FILE_NAME }}
+    #     release_name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
+    #     body: "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！"
+    #     overwrite: true
+    #     file_glob: true
 
     - name: 编译完成TG或pushplus通知
       if: env.COMPILESTATUS == 'success' && ((env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH') || (env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'))
