@@ -275,6 +275,20 @@ jobs:
     #     overwrite: true
     #     file_glob: true
 
+    - name: 构造docker镜像
+      id: push
+      if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        cd $GITHUB_WORKSPACE/x86_64/docker
+        cp $GITHUB_WORKSPACE/openwrt/bin/targets/x86/64/openwrt-x86-64-generic-rootfs.tar.gz $GITHUB_WORKSPACE/x86_64/docker
+        mv openwrt-x86-64-generic-rootfs.tar.gz openwrt-x86-64-default-rootfs.tar.gz  
+        chmod +x build.sh
+        ./build.sh
+        gzip -dc docker-img-openwrt-x86-latest.gz | docker load
+        docker login --username=${{ secrets.DOCKER_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }}
+        docker tag /openwrt-x86 ${{ secrets.DOCKER_USERNAME }}/openwrt-x86:${{ env.FILE_DATE }}
+        docker push ${{ secrets.DOCKER_USERNAME }}/openwrt-x86
+
     - name: 编译完成TG或pushplus通知
       if: env.COMPILESTATUS == 'success' && ((env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH') || (env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'))
       run: |
