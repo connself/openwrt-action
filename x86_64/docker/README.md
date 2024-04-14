@@ -23,7 +23,7 @@ docker network create -d macvlan --subnet=192.168.123.0/24 --gateway=192.168.123
 
 docker network ls
 
-4、拉取镜像，可以通过阿里云镜像提升镜像拉取速度
+4、拉取镜像
 
 docker pull geomch/openwrt-x86:latest
 
