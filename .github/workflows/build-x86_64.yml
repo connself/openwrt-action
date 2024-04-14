@@ -250,7 +250,7 @@ jobs:
         echo "release_name=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
         echo "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！" >> release.txt
-        echo "IP:192.168.123.5" >> release.txt
+        echo "IP：192.168.123.5" >> release.txt
         echo "账户：root" >> release.txt
         echo "密码：无" >> release.txt
         
