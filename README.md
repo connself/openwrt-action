@@ -1,15 +1,24 @@
 # OpenWrt_x86
-自编译OpenWrt x86固件
+[![Build X86 OpenWrt](https://github.com/connself/openwrt-action/actions/workflows/build-x86_64.yml/badge.svg)](https://github.com/connself/openwrt-action/actions/workflows/build-x86_64.yml)
+自编译OpenWrt x86固件  
 
-输出Hyper-V的vhdx虚拟磁盘,VMWare Workstation的vmdk虚拟磁盘以及用于安装的img镜像
 
-PVE一键安装脚本
+## 下载地址
+详见 [GitHub Releases](https://github.com/connself/openwrt-action/releases)  
+
+## Docker
+详见 [Docker 使用说明](https://github.com/connself/openwrt-action/blob/main/x86_64/docker/README.md)  
+
+## PVE
+一键安装脚本
 
 ```bash -c  "$(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc-install.sh)"```
 
-有其它需求可以自行使用StarWind V2V Converter工具转换！  
+## 其他
 
-下载地址：[GitHub Releases](https://github.com/connself/openwrt-action/releases)  
+- Hyper-V的vhdx虚拟磁盘
+- VMWare Workstation的vmdk虚拟磁盘
+- 有其它需求可以自行使用StarWind V2V Converter工具转换！  
 
 ### 鸣谢
 - [GitHub Actions](https://github.com/features/actions)
