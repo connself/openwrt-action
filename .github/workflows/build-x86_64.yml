@@ -250,6 +250,9 @@ jobs:
         echo "release_name=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
         echo "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！" >> release.txt
+        echo "IP:192.168.123.5" >> release.txt
+        echo "账户：root" >> release.txt
+        echo "密码：password" >> release.txt
         
     - name: 发布固件
       uses: ncipollo/release-action@main
@@ -262,18 +265,6 @@ jobs:
         token: ${{ secrets.token_release }}
         bodyFile: release.txt
         artifacts: ${{ env.FIRMWARE }}/*
-
-    # - name: 发布固件
-    #   if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
-    #   uses: svenstaro/upload-release-action@v2
-    #   with:
-    #     repo_token: ${{ secrets.token_release }}
-    #     file: ${{ env.FIRMWARE }}/*
-    #     tag: ${{ env.FILE_NAME }}
-    #     release_name: ${{ steps.tag.outputs.release_name }}🔥${{ env.FILE_NAME }}
-    #     body: "⭐️此版本为 ${{ env.FILE_NAME }}固件，选择相应内核固件下载！"
-    #     overwrite: true
-    #     file_glob: true
 
     - name: 构造docker镜像
       id: push
