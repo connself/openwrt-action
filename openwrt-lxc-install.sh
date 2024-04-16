@@ -8,7 +8,7 @@ export Creatlxc_Path="/tmp/openwrt/creatlxc"
 export Backup_Path="/tmp/openwrt/backup"
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
-export Version="2023.08.27"
+export Version="2024.04.16"
 # pause
 pause(){
     read -n 1 -p " Press any key to continue... " input
@@ -43,11 +43,9 @@ update_CT_Templates(){
     TIME y "下载OpenWrt固件"
     echo " 直连下载固件中..."
     wget -q -c --timeout=15 --tries=1 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
-    # echo " 通过https://ghproxy.clsoo.net代理下载固件中..."
-    # wget -q -c --timeout=30 --tries=2 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.clsoo.net/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
     if [[ $? -ne 0 ]];then
-        echo " 通过https://ghproxy.com/代理下载固件中..."
-        wget -q -c --timeout=30 --tries=1 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
+        echo " 通过https://mirror.ghproxy.com/代理下载固件中..."
+        wget -q -c --timeout=30 --tries=1 --show-progress -O ${Download_Path}/openwrt.rootfs.img.gz https://mirror.ghproxy.com/https://github.com/${Apidz}/releases/download/${latestTag}/openwrt-x86-64-generic-squashfs-rootfs.img.gz
         if [[ $? -ne 0 ]];then
             TIME r "固件下载失败，请检测网络，或者网址是否正确！"
             echo
