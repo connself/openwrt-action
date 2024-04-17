@@ -1,6 +1,6 @@
 ## 支持设备及镜像版本
 
-本项目编译 OpenWrt 镜像，镜像构建完成后将推送到 [DockerHub](https://hub.docker.com/r/geomch/openwrt) 。
+本项目编译 OpenWrt 镜像，镜像构建完成后将推送到 [DockerHub](https://hub.docker.com/r/geomch/openwrt-x86) 。
 
 
 ### OpenWrt 镜像地址
