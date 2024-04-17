@@ -22,6 +22,22 @@ function git_sparse_clone() {
   cd .. && rm -rf $repodir
 }
 
+mkdir package/community
+pushd package/community
+
+# Add luci-app-ssr-plus
+# git clone --depth=1 https://github.com/fw876/helloworld
+
+# Add luci-app-passwall
+git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages
+git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2
+git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall
+
+# Add OpenClash
+# git clone --depth=1 https://github.com/vernesong/OpenClash
+
+popd
+
 
 # 修改golang版本
 rm -rf feeds/packages/lang/golang
