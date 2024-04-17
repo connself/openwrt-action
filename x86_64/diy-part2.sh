@@ -12,10 +12,58 @@
 
 echo "--------------diy-part2 start--------------"
 
-echo '防止插件冲突，删除重复'
+# 替换原 svn 命令
+function git_sparse_clone() {
+  branch="$1" repourl="$2" && shift 2
+  git clone --depth=1 -b $branch --single-branch --filter=blob:none --sparse $repourl
+  repodir=$(echo $repourl | awk -F '/' '{print $(NF)}')
+  cd $repodir && git sparse-checkout set $@
+  mv -f $@ ../package
+  cd .. && rm -rf $repodir
+}
+
+echo '移除要替换的包'
+
+
+
+
+
+echo '添加额外插件'
+git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
+rm -rf feeds/luci/applications/luci-app-netdata
+git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
+# SmartDNS
+rm -rf feeds/packages/net/smartdns
+git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
+git clone --depth=1 https://github.com/pymumu/openwrt-smartdns package/smartdns
+# msd_lite
+rm -rf feeds/packages/net/msd_lite
+git clone --depth=1 https://github.com/ximiTech/luci-app-msd_lite package/luci-app-msd_lite
+git clone --depth=1 https://github.com/ximiTech/msd_lite package/msd_lite
+# MosDNS
+rm -rf feeds/packages/net/mosdns
 rm -rf feeds/luci/applications/luci-app-mosdns
-rm -rf feeds/packages/net/{alist,adguardhome,mosdns,xray*,v2ray*,v2ray*,sing*,smartdns}
-rm -rf feeds/packages/utils/v2dat
+git clone --depth=1 https://github.com/sbwml/luci-app-mosdns package/luci-app-mosdns
+# Alist
+git clone --depth=1 https://github.com/sbwml/luci-app-alist package/luci-app-alist
+# iStore
+git_sparse_clone main https://github.com/linkease/istore-ui app-store-ui
+git_sparse_clone main https://github.com/linkease/istore luci
+# 在线用户
+git_sparse_clone main https://github.com/haiibo/packages luci-app-onliner
+sed -i '$i uci set nlbwmon.@nlbwmon[0].refresh_interval=2s' package/lean/default-settings/files/zzz-default-settings
+sed -i '$i uci commit nlbwmon' package/lean/default-settings/files/zzz-default-settings
+chmod 755 package/luci-app-onliner/root/usr/share/onliner/setnlbw.sh
+
+# 科学上网插件
+git clone --depth=1 -b main https://github.com/fw876/helloworld package/luci-app-ssr-plus
+git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
+git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
+git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
+git_sparse_clone master https://github.com/vernesong/OpenClash luci-app-openclash
+
+
+# 修改golang版本
 rm -rf feeds/packages/lang/golang
 git clone https://github.com/kenzok8/golang feeds/packages/lang/golang
 
@@ -24,6 +72,9 @@ rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
 git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
 git clone -b 18.06 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
+
+# 更改 Argon 主题背景
+cp -f $GITHUB_WORKSPACE/diy/argon/bg1.jpg package/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
 
 # 修改 argon 为默认主题,可根据你喜欢的修改成其他的（不选择那些会自动改变为默认主题的主题才有效果）
 sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
@@ -90,16 +141,8 @@ sed -i 's/ <%=luci.sys.exec("cat \/etc\/bench.log") or " "%>//g' package/lean/au
 
 
 echo '设置个性banner'
-cat > package/base-files/files/etc/banner <<EOF
-                                                       __   
-       .-----.-----.-----.-----.--.--.--.----.|  |_ 
-       |  _  |  _  |  -__|     |  |  |  |   _||   _|
-       |_____|   __|_____|__|__|________|__|  |____|
-             |__|
-        _________________________________________
-        
-           %D %V, %C
-           geomch
-        _________________________________________
-EOF
-# cp $GITHUB_WORKSPACE/banner package/base-files/files/etc/banner
+cp $GITHUB_WORKSPACE/diy/banner package/base-files/files/etc/banner
+
+
+./scripts/feeds update -a
+./scripts/feeds install -a
