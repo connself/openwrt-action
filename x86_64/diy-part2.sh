@@ -1,42 +1,10 @@
 #!/bin/bash
 #
-# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
-# https://github.com/P3TERX/Actions-OpenWrt
 # File name: diy-part2.sh
-# Description: OpenWrt DIY script part 2 (After Update feeds)
+# Description: OpenWrt DIY script part 2 (After install feeds)
 #
 
 echo "--------------diy-part2 start--------------"
-
-# 替换原 svn 命令
-function git_sparse_clone() {
-  branch="$1" repourl="$2" && shift 2
-  git clone --depth=1 -b $branch --single-branch --filter=blob:none --sparse $repourl
-  repodir=$(echo $repourl | awk -F '/' '{print $(NF)}')
-  cd $repodir && git sparse-checkout set $@
-  mv -f $@ ../package
-  cd .. && rm -rf $repodir
-}
-
-mkdir package/community
-pushd package/community
-
-# Add luci-app-ssr-plus
-# git clone --depth=1 https://github.com/fw876/helloworld
-
-# Add luci-app-passwall
-git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages
-git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2
-git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall
-
-# Add OpenClash
-# git clone --depth=1 https://github.com/vernesong/OpenClash
-
-popd
 
 
 # 修改golang版本
@@ -118,7 +86,3 @@ sed -i 's/ <%=luci.sys.exec("cat \/etc\/bench.log") or " "%>//g' package/lean/au
 
 echo '设置个性banner'
 cp $GITHUB_WORKSPACE/diy/banner package/base-files/files/etc/banner
-
-
-./scripts/feeds update -a
-./scripts/feeds install -a
