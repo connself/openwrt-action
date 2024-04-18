@@ -12,16 +12,12 @@ rm -rf feeds/packages/lang/golang
 git clone https://github.com/kenzok8/golang feeds/packages/lang/golang
 
 echo 'Themes 主题'
-rm -rf feeds/luci/themes/luci-theme-argon
-rm -rf feeds/luci/applications/luci-app-argon-config
-git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
-git clone -b 18.06 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
 
-# 更改 Argon 主题背景
-cp -f $GITHUB_WORKSPACE/diy/argon/bg1.jpg package/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
+# 更改 Argone 主题背景
+cp -f $GITHUB_WORKSPACE/diy/argon/bg1.jpg package/luci-theme-argone/htdocs/luci-static/argone/img/bg1.jpg
 
-# 修改 argon 为默认主题,可根据你喜欢的修改成其他的（不选择那些会自动改变为默认主题的主题才有效果）
-sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
+# 修改 argone 为默认主题,可根据你喜欢的修改成其他的（不选择那些会自动改变为默认主题的主题才有效果）
+sed -i 's/luci-theme-bootstrap/luci-theme-argone/g' feeds/luci/collections/luci/Makefile
 
 echo '修改网络设置'
 sed -i 's/192.168.1.1/192.168.123.5/g' package/base-files/files/bin/config_generate

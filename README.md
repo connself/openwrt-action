@@ -40,5 +40,4 @@
 - [kenzok8/openwrt-packages](https://github.com/kenzok8/openwrt-packages)
 - [haiibo/openwrt-packages](https://github.com/haiibo/openwrt-packages)
 - [kiddin9/openwrt-packages](https://github.com/kiddin9/openwrt-packages)
-- [jerrykuku/luci-theme-argon](https://github.com/jerrykuku/luci-theme-argon)
 - [roacn/build-actions](https://github.com/roacn/build-actions)
