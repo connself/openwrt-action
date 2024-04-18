@@ -277,7 +277,7 @@ jobs:
       if: env.COMPILESTATUS == 'success' && !cancelled()
       run: |
         cd $GITHUB_WORKSPACE/x86_64/docker
-        cp $GITHUB_WORKSPACE/openwrt/bin/targets/x86/64/openwrt-x86-64-generic-rootfs.tar.gz $GITHUB_WORKSPACE/x86_64/docker
+        cp $GITHUB_WORKSPACE/firmware/openwrt-x86-64-generic-rootfs.tar.gz $GITHUB_WORKSPACE/x86_64/docker
         mv openwrt-x86-64-generic-rootfs.tar.gz openwrt-x86-64-default-rootfs.tar.gz  
         chmod +x build.sh
         ./build.sh
