@@ -141,7 +141,7 @@ jobs:
         ccache: 'true'
         mixkey: ${{ env.FILE_NAME }}
         clean: ${{ contains(github.event.action, 'nocache') }}
-        prefix: $GITHUB_WORKSPACE/openwrt
+        prefix: ${{ github.workspace }}/openwrt
 
     - name: 加载自定义feeds和更新安装feeds
       run: |
