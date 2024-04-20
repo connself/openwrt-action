@@ -693,22 +693,10 @@ function script_help() {
 EOF
 }
 
-function linux_uname(){
-    if [[ -n `uname -a` ]]; then
-        clear
-        echo "`uname -a`"
-        echo
-        __error_msg "脚本需运行在PVE环境！"
-        exit 1
-    fi
-}
-
 function files_clean(){
     [[ -d ${Openwrt_Path} ]] && rm -rf ${Openwrt_Path} > /dev/null 2>&1
 }
 
-
-linux_uname
 settings_init
 network_check &
 
