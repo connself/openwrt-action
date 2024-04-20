@@ -65,10 +65,10 @@ function settings_init() {
     if [[ ! -f ${Settings_File} ]]; then
 cat > ${Settings_File} <<-EOF
 Repository="connself/openwrt-action"
-Lxc_id="100"
-Lxc_hostname="OpenWrt"
+Lxc_id="110"
+Lxc_hostname="openwrt"
 Lxc_cores="4"
-Lxc_memory="2048"
+Lxc_memory="512"
 Lxc_rootfssize="2"
 Lxc_onboot="0"
 Lxc_order="1"
@@ -258,8 +258,8 @@ function ct_update(){
 function set_pct_id(){
     echo
     while :; do
-        read -t 60 -p "请输入OpenWrt容器ID [默认100]:" input_id || echo
-        input_id=${input_id:-100}
+        read -t 60 -p "请输入OpenWrt容器ID [默认110]:" input_id || echo
+        input_id=${input_id:-110}
         check_input_id=`echo ${input_id} | sed 's/[0-9]//g'`
         if [[ -n $check_input_id ]]; then
             __error_msg "输入错误，请重新输入！"
@@ -275,8 +275,8 @@ function set_pct_id(){
 function set_pct_hostname(){
     echo
     while :; do
-        read -t 60 -p "请输入OpenWrt容器名称 [默认OpenWrt]:" input_hostname || echo
-        input_hostname=${input_hostname:-OpenWrt}
+        read -t 60 -p "请输入OpenWrt容器名称 [默认openwrt]:" input_hostname || echo
+        input_hostname=${input_hostname:-openwrt}
         local check_input_hostname=`echo ${input_hostname} | sed 's/[a-zA-Z0-9]//g' | sed 's/[_.-]//g'`
         if [[ -n $check_input_hostname ]]; then
             __error_msg "输入错误，请重新输入！"
@@ -290,8 +290,8 @@ function set_pct_hostname(){
 function set_pct_rootfssize(){
     echo
     while :; do
-        read -t 60 -p "请输入OpenWrt磁盘大小 [单位GB, 默认2]:" input_rootfssize || echo
-        input_rootfssize=${input_rootfssize:-2}
+        read -t 60 -p "请输入OpenWrt磁盘大小 [单位GB, 默认4]:" input_rootfssize || echo
+        input_rootfssize=${input_rootfssize:-4}
         local check_input_rootfssize=`echo ${input_rootfssize} | sed 's/[0-9]//g'`
         if [[ -n $check_input_rootfssize ]]; then
             __error_msg "输入错误，请重新输入！"
@@ -324,8 +324,8 @@ function set_pct_cores(){
 function set_pct_memory(){
     echo
     while :; do
-        read -t 60 -p "请输入OpenWrt内存大小 [单位MB, 默认2048]:" input_memory || echo
-        input_memory=${input_memory:-2048}
+        read -t 60 -p "请输入OpenWrt内存大小 [单位MB, 默认512]:" input_memory || echo
+        input_memory=${input_memory:-512}
         local check_input_memory=`echo ${input_memory} | sed 's/[0-9]//g'`
         if [[ -n $check_input_memory ]]; then
             __error_msg "输入错误，请重新输入！"
