@@ -407,22 +407,26 @@ start_openwrt(){
     sleep 5
     pct start ${id}
     sleep 30
-    t=0
+    local times=0
     while :; do
-        let t+=1
-        pct exec ${id} -- ping -c 2 www.baidu.com
-        if [[ $? -ne 0 ]] && [[ ${t} -le 5 ]]; then                
-            echo " OpenWrt启动中... 10s后进行第${t}次尝试！"
-            sleep 10
-        elif [[ $? -ne 0 ]] && [[ ${t} -gt 5 ]]; then
-            TIME r "OpenWrt启动失败！请手动启动后继续！"
-            echo
-            pause
-            t=0
-        else
-            TIME g "OpenWrt启动成功！"
+        let times+=1
+        local openwrt_status=`pct status ${Lxc_id} | awk '{print $2}'`
+        case ${openwrt_status} in
+        running)
+            __success_msg "OpenWrt启动成功！"
             break
-        fi
+        ;;
+        *)
+            if [[ ${times} -le 5 ]]; then                
+                echo "OpenWrt启动中... 5s后进行第${times}次尝试！"
+                sleep 5
+            elif [[ ${times} -gt 5 ]]; then
+                __error_msg "OpenWrt启动失败！请手动启动后，按 [Enter] 键继续！"
+                pause
+                times=0
+            fi
+        ;;
+        esac
     done
 }
 # 恢复OpenWrt设置
