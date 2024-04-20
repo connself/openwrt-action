@@ -14,7 +14,11 @@
 一键安装脚本
 
 ```bash -c
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc-install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc.sh)"
+```
+
+```bash -c
+bash -c "$(curl -fsSL https://mirror.ghproxy.com/https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc.sh)"
 ```
 
 ## 其他
