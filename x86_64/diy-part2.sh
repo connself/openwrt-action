@@ -7,10 +7,6 @@
 echo "--------------diy-part2 start--------------"
 
 
-# 修改golang版本
-rm -rf feeds/packages/lang/golang
-git clone https://github.com/kenzok8/golang feeds/packages/lang/golang
-
 echo 'Themes 主题'
 
 # 更改 Argone 主题背景
