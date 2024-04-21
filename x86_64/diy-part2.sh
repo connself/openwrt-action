@@ -6,11 +6,26 @@
 
 echo "--------------diy-part2 start--------------"
 
+# 替换编译前源码中对应目录文件
+sudo rm -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/diy/{*README*,*readme*} > /dev/null 2>&1
+if [ -n "$(ls -A "$GITHUB_WORKSPACE/$MATRIX_TARGET/diy" 2>/dev/null)" ]; then
+    cp -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/diy/* ./ > /dev/null 2>&1
+fi
+
+# 替换编译后固件中对应目录文件
+sudo rm -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/files/{*README*,*readme*} > /dev/null 2>&1
+if [ -n "$(ls -A "$GITHUB_WORKSPACE/$MATRIX_TARGET/files" 2>/dev/null)" ]; then
+    cp -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/files ./ > /dev/null 2>&1
+fi
+
+# 打补丁
+sudo rm -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/patches/{*README*,*readme*} > /dev/null 2>&1
+if [ -n "$(ls -A "$GITHUB_WORKSPACE/$MATRIX_TARGET/patches" 2>/dev/null)" ]; then
+    find "$GITHUB_WORKSPACE/$MATRIX_TARGET/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
+fi
+
 
 echo 'Themes 主题'
-
-# 更改 Argone 主题背景
-cp -f $GITHUB_WORKSPACE/diy/argon/bg1.jpg package/luci-theme-argone/htdocs/luci-static/argone/img/bg1.jpg
 
 # 修改 argone 为默认主题,可根据你喜欢的修改成其他的（不选择那些会自动改变为默认主题的主题才有效果）
 sed -i 's/luci-theme-bootstrap/luci-theme-argone/g' feeds/luci/collections/luci/Makefile
