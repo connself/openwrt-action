@@ -20,19 +20,19 @@ on:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede.git
   REPO_BRANCH: master
-  FEEDS_CONF: x86_64/feeds.conf.default
-  CONFIG_FILE: x86_64/.config
-  DIY_P1_SH: x86_64/diy-part1.sh
-  DIY_P2_SH: x86_64/diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
-  FILE_NAME: x86_64
   SERVERCHAN_SCKEY: ${{ secrets.SERVERCHAN_SCKEY }}
   PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
   TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
   TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  MATRIX_TARGET: x86_64
+  FEEDS_CONF: x86_64/feeds.conf.default
+  CONFIG_FILE: x86_64/.config
+  DIY_P1_SH: x86_64/diy-part1.sh
+  DIY_P2_SH: x86_64/diy-part2.sh
 
 jobs:
   Checka:
@@ -123,9 +123,9 @@ jobs:
       if: (env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH') || (env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE')
       run: |
         if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
-          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在编译openwrt ${{ env.FILE_NAME }}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在编译openwrt ${{ env.MATRIX_TARGET }}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
         elif [[ "${SERVERCHAN_SCKEY}" == "PUSH" ]]; then
-          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译openwrt ${{ env.FILE_NAME }}固件" --data "content=🎉 主人：您正在编译openwrt ${{ env.FILE_NAME }}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译openwrt ${{ env.MATRIX_TARGET }}固件" --data "content=🎉 主人：您正在编译openwrt ${{ env.MATRIX_TARGET }}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
         fi
 
     - name: 克隆源码
@@ -139,7 +139,7 @@ jobs:
       uses: stupidloud/cachewrtbuild@main
       with:
         ccache: 'true'
-        mixkey: ${{ env.FILE_NAME }}
+        mixkey: ${{ env.MATRIX_TARGET }}
         clean: ${{ contains(github.event.action, 'nocache') }}
         prefix: ${{ github.workspace }}/openwrt
 
@@ -231,7 +231,7 @@ jobs:
       run: |
         mkdir firmware
         mv -f openwrt/bin/targets/*/*/* ./firmware/ 2>/dev/null || true
-        cp openwrt/.config  ./firmware/${{env.FILE_NAME}}.config
+        cp openwrt/.config  ./firmware/${{env.MATRIX_TARGET}}.config
         cd firmware
         rm -rf packages
         rm -rf *.buildinfo
@@ -255,7 +255,7 @@ jobs:
       run: |
         echo "release_name=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
-        echo "⭐️${{ env.FILE_NAME }}固件" >> release.txt
+        echo "⭐️${{ env.MATRIX_TARGET }}固件" >> release.txt
         echo "IP：192.168.123.5" >> release.txt
         echo "账户：root" >> release.txt
         echo "密码：无" >> release.txt
@@ -264,9 +264,9 @@ jobs:
       uses: ncipollo/release-action@main
       if: env.COMPILESTATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
-        # name: ${{ env.FILE_NAME }}🔥${{ steps.tag.outputs.release_name }}
+        # name: ${{ env.MATRIX_TARGET }}🔥${{ steps.tag.outputs.release_name }}
         allowUpdates: true
-        tag: ${{ env.FILE_NAME }}🔥${{ steps.tag.outputs.release_name }}
+        tag: ${{ env.MATRIX_TARGET }}🔥${{ steps.tag.outputs.release_name }}
         removeArtifacts: false
         token: ${{ secrets.token_release }}
         bodyFile: release.txt
@@ -290,7 +290,7 @@ jobs:
       if: env.COMPILESTATUS == 'success' && ((env.PUSH_PLUS_TOKEN && env.SERVERCHAN_SCKEY == 'PUSH') || (env.TELEGRAM_BOT_TOKEN && env.SERVERCHAN_SCKEY == 'TELE'))
       run: |
         if [[ "${SERVERCHAN_SCKEY}" == "TELE" ]]; then
-          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您编译的openwrt ${{ env.MATRIX_TARGET }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
         elif [[ "${SERVERCHAN_SCKEY}" == "PUSH" ]]; then
-          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="编译成功" --data "content=我亲爱的✨主人✨：您编译的openwrt ${{ env.FILE_NAME }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
+          curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="编译成功" --data "content=我亲爱的✨主人✨：您编译的openwrt ${{ env.MATRIX_TARGET }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
         fi

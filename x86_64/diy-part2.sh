@@ -6,18 +6,21 @@
 
 echo "--------------diy-part2 start--------------"
 
+echo "开始替换diy文件夹内文件"
 # 替换编译前源码中对应目录文件
 sudo rm -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/diy/{*README*,*readme*} > /dev/null 2>&1
 if [ -n "$(ls -A "$GITHUB_WORKSPACE/$MATRIX_TARGET/diy" 2>/dev/null)" ]; then
     cp -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/diy/* ./ > /dev/null 2>&1
 fi
 
+echo "开始替换files文件夹内文件"
 # 替换编译后固件中对应目录文件
 sudo rm -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/files/{*README*,*readme*} > /dev/null 2>&1
 if [ -n "$(ls -A "$GITHUB_WORKSPACE/$MATRIX_TARGET/files" 2>/dev/null)" ]; then
     cp -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/files ./ > /dev/null 2>&1
 fi
 
+echo "开始开始执行补丁文件替换diy文件夹内文件"
 # 打补丁
 sudo rm -rf $GITHUB_WORKSPACE/$MATRIX_TARGET/patches/{*README*,*readme*} > /dev/null 2>&1
 if [ -n "$(ls -A "$GITHUB_WORKSPACE/$MATRIX_TARGET/patches" 2>/dev/null)" ]; then
