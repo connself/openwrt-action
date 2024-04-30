@@ -10,15 +10,14 @@
 ## Docker
 详见 [Docker 使用说明](https://github.com/connself/openwrt-action/blob/main/x86_64/docker/README.md)  
 
-## PVE
-一键安装脚本
+## PVE一键安装脚本
 
 ```bash -c
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc.sh)"
 ```
 
 ```bash -c
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc.sh)"
+bash -c "$(curl -fsSL https://mirror.ghproxy.com/https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc.sh)"
 ```
 
 ## 其他
