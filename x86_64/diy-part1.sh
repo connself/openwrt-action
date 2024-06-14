@@ -29,7 +29,6 @@ sed -i '2i src-git small https://github.com/kenzok8/small' feeds.conf.default
 
 # 更新feeds 必须
 ./scripts/feeds update -a
-make menuconfig
 
 rm -rf feeds/kenzo/{base-files,dnsmasq,firewall*,fullconenat,libnftnl,nftables,ppp,opkg,ucl,upx,vsftpd-alt,miniupnpd-iptables,wireless-regdb}
 rm -rf feeds/luci/applications/luci-app-mosdns
@@ -39,7 +38,8 @@ rm -rf feeds/kenzo/luci-app-adguardhome
 rm -rf feeds/packages/lang/golang
 git clone https://github.com/kenzok8/golang feeds/packages/lang/golang
 
+ ./scripts/feeds update -a 
+sed -i 's#GO_PKG_TARGET_VARS.*# #g' feeds/packages/utils/v2dat/Makefile 
+
 # 安装feeds 必须
 ./scripts/feeds install -a 
-make menuconfig
-
