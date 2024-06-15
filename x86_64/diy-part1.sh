@@ -30,13 +30,11 @@ sed -i '2i src-git small https://github.com/kenzok8/small' feeds.conf.default
 # 更新feeds 必须
 ./scripts/feeds update -a
 
+rm -rf feeds/luci/applications/luci-app-mosdns
 rm -rf feeds/packages/net/{alist,adguardhome,mosdns,xray*,v2ray*,v2ray*,sing*,smartdns}
 rm -rf feeds/packages/utils/v2dat
 rm -rf feeds/packages/lang/golang
 git clone https://github.com/kenzok8/golang feeds/packages/lang/golang
-
- ./scripts/feeds update -a 
-sed -i 's#GO_PKG_TARGET_VARS.*# #g' feeds/packages/utils/v2dat/Makefile 
 
 # 安装feeds 必须
 ./scripts/feeds install -a 
