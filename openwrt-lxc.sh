@@ -11,7 +11,7 @@ Script_Path="/tmp/openwrt/script"
 Lxc_Path="/tmp/openwrt/lxc"
 Bak_Path="/tmp/openwrt/bak"
 
-Proxy_Primary="https://mirror.ghproxy.com"
+Proxy_Primary="https://ghp.ci"
 Proxy_Secondary="https://ghproxy.net"
 CDN_Jsdelivr="https://cdn.jsdelivr.net/gh"
 Mirror_Fastgit="https://download.fastgit.org"
@@ -399,7 +399,7 @@ function lxc_prepare() {
 cat > ${Lxc_Path}/${Lxc_id} <<-EOF
 pct create ${Lxc_id} \\
 local:vztmpl/geoc.openwrt.rootfs.tar.gz \\
---rootfs local-lvm:${Lxc_rootfssize} \\
+--rootfs local:${Lxc_rootfssize} \\
 --ostype unmanaged \\
 --hostname ${Lxc_hostname} \\
 --arch amd64 \\
@@ -417,7 +417,7 @@ EOF
 cat > ${Lxc_Path}/${Lxc_id} <<-EOF
 pct create ${Lxc_id} \\
 local:vztmpl/geoc.openwrt.rootfs.tar.gz \\
---rootfs local-lvm:${Lxc_rootfssize} \\
+--rootfs local:${Lxc_rootfssize} \\
 --ostype unmanaged \\
 --hostname ${Lxc_hostname} \\
 --arch amd64 \\
@@ -436,7 +436,7 @@ EOF
 cat > ${Lxc_Path}/${Lxc_id} <<-EOF
 pct create ${Lxc_id} \\
 local:vztmpl/geoc.openwrt.rootfs.tar.gz \\
---rootfs local-lvm:${Lxc_rootfssize} \\
+--rootfs local:${Lxc_rootfssize} \\
 --ostype unmanaged \\
 --hostname ${Lxc_hostname} \\
 --arch amd64 \\
@@ -456,7 +456,7 @@ EOF
 cat > ${Lxc_Path}/${Lxc_id} <<-EOF
 pct create ${Lxc_id} \\
 local:vztmpl/geoc.openwrt.rootfs.tar.gz \\
---rootfs local-lvm:${Lxc_rootfssize} \\
+--rootfs local:${Lxc_rootfssize} \\
 --ostype unmanaged \\
 --hostname ${Lxc_hostname} \\
 --arch amd64 \\

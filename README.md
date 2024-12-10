@@ -7,17 +7,19 @@
 ## 下载地址
 详见 [GitHub Releases](https://github.com/connself/openwrt-action/releases)  
 
-## Docker
+## Docker安装
 详见 [Docker 使用说明](https://github.com/connself/openwrt-action/blob/main/x86_64/docker/README.md)  
 
-## PVE一键安装脚本
+## PVE安装
 
 ```bash -c
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc.sh)"
 ```
-## PVE一键安装脚本国内
+
+## PVE安装（国内镜像）
+
 ```bash -c
-bash -c "$(curl -fsSL https://mirror.ghproxy.com/https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc.sh)"
+bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/connself/openwrt-action/main/openwrt-lxc.sh)"
 ```
 
 ## 其他
