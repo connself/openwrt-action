@@ -294,3 +294,18 @@ jobs:
         elif [[ "${SERVERCHAN_SCKEY}" == "PUSH" ]]; then
           curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="编译成功" --data "content=我亲爱的✨主人✨：您编译的openwrt ${{ env.MATRIX_TARGET }}固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
         fi
+
+    - name: 清理Workflow
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          retain_days: 1
+          keep_minimum_runs: 0
+
+      - name: 清理Releases
+        uses: dev-drprasad/delete-older-releases@master
+        with:
+          keep_latest: 10
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.token_release }}
+
