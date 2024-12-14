@@ -35,7 +35,7 @@ env:
   DIY_P2_SH: x86_64/diy-part2.sh
 
 jobs:
-  Checka:
+  check:
     runs-on: ubuntu-latest
 
     steps:
